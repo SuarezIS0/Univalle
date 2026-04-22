@@ -1,0 +1,34 @@
+services:
+  next-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce-next
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/ecommerce
+      - NODE_ENV=production
+    depends_on:
+      - mongo
+    networks:
+      - ecommerce-network
+
+  mongo:
+    image: mongo:latest
+    container_name: ecommerce-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: ecommerce
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - ecommerce-network
+
+volumes:
+  mongo-data:
+
+networks:
+  ecommerce-network:
+    driver: bridge
