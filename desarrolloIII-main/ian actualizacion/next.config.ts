@@ -1,10 +1,22 @@
 import type { NextConfig } from "next";
 
+const GATEWAY_URL = process.env.API_GATEWAY_URL || "http://api-gateway:8080";;
+
 const nextConfig: NextConfig = {
-  // Configuración para Turbopack (Next.js 16)
   turbopack: {},
-  // Deshabilitar source maps en desarrollo para reducir memoria
   productionBrowserSourceMaps: false,
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: "/api/:path*",
+          destination: `${GATEWAY_URL}/api/:path*`,
+        },
+      ],
+      afterFiles: [],
+      fallback: [],
+    };
+  },
 };
 
 export default nextConfig;

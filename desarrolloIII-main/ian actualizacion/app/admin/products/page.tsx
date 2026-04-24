@@ -45,6 +45,16 @@ export default function AdminProductsPage() {
       router.push("/login");
       return;
     }
+    try {
+      const payload = JSON.parse(atob(t.split(".")[1]));
+      if (payload.role !== "admin") {
+        router.push("/");
+        return;
+      }
+    } catch {
+      router.push("/login");
+      return;
+    }
     setToken(t);
     load();
   }, [router]);

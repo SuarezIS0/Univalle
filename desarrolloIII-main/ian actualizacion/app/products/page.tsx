@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import ProductCard from "@/app/components/ProductCard";
+import { apiFetch } from "@/app/lib/api";
 
 type Product = {
   id: string;
@@ -40,19 +41,14 @@ export default function ProductsPage() {
     const load = async () => {
       setLoading(true);
       setError(null);
-      try {
-        const res = await fetch("/api/products");
-        const json = await res.json();
-        if (!res.ok || json.success === false) {
-          throw new Error(json.error || `Error ${res.status}`);
-        }
-        setProducts(json.data ?? []);
-      } catch (e) {
+      const r = await apiFetch<Product[]>("/api/products");
+      if (!r.ok) {
         setProducts([]);
-        setError(e instanceof Error ? e.message : "Error al cargar productos");
-      } finally {
-        setLoading(false);
+        setError(r.error || "Error al cargar productos");
+      } else {
+        setProducts(r.data ?? []);
       }
+      setLoading(false);
     };
     load();
   }, []);

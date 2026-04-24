@@ -1,0 +1,135 @@
+services:
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - AUTH_URL=http://auth-service:3001
+      - USERS_URL=http://users-service:3002
+      - PRODUCTS_URL=http://products-service:3003
+      - ORDERS_URL=http://orders-service:3004
+      - PAYMENTS_URL=http://payments-service:3005
+    depends_on:
+      - auth-service
+      - users-service
+      - products-service
+      - orders-service
+      - payments-service
+    networks: [msnet]
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports: ["3001:3001"]
+    environment:
+      - PORT=3001
+      - MONGO_URI=mongodb://mongo-auth:27017/auth
+      - JWT_SECRET=supersecret-univalle-ecommerce-2026
+    depends_on: [mongo-auth]
+    networks: [msnet]
+
+  users-service:
+    build: ./users-service
+    container_name: users-service
+    ports: ["3002:3002"]
+    environment:
+      - PORT=3002
+      - MONGO_URI=mongodb://mongo-users:27017/users
+      - JWT_SECRET=supersecret-univalle-ecommerce-2026
+      - ADMIN_PROMOTE_SECRET=univalle-admin-seed
+    depends_on: [mongo-users]
+    networks: [msnet]
+
+  products-service:
+    build: ./products-service
+    container_name: products-service
+    ports: ["3003:3003"]
+    environment:
+      - PORT=3003
+      - MONGO_URI=mongodb://mongo-products:27017/products
+      - JWT_SECRET=supersecret-univalle-ecommerce-2026
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      - mongo-products
+      - rabbitmq
+    restart: unless-stopped
+    networks: [msnet]
+
+  orders-service:
+    build: ./orders-service
+    container_name: orders-service
+    ports: ["3004:3004"]
+    environment:
+      - PORT=3004
+      - MONGO_URI=mongodb://mongo-orders:27017/orders
+      - JWT_SECRET=supersecret-univalle-ecommerce-2026
+      - PRODUCTS_URL=http://products-service:3003
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    depends_on: [mongo-orders, products-service, rabbitmq]
+    networks: [msnet]
+
+  payments-service:
+    build: ./payments-service
+    container_name: payments-service
+    ports: ["3005:3005"]
+    environment:
+      - PORT=3005
+      - MONGO_URI=mongodb://mongo-payments:27017/payments
+      - JWT_SECRET=supersecret-univalle-ecommerce-2026
+      - ORDERS_URL=http://orders-service:3004
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    depends_on: [mongo-payments, orders-service, rabbitmq]
+    networks: [msnet]
+
+  mongo-auth:
+    image: mongo:7
+    volumes: [auth-data:/data/db]
+    networks: [msnet]
+
+  mongo-users:
+    image: mongo:7
+    volumes: [users-data:/data/db]
+    networks: [msnet]
+
+  mongo-products:
+    image: mongo:7
+    volumes: [products-data:/data/db]
+    networks: [msnet]
+
+  mongo-orders:
+    image: mongo:7
+    volumes: [orders-data:/data/db]
+    networks: [msnet]
+
+  mongo-payments:
+    image: mongo:7
+    volumes: [payments-data:/data/db]
+    networks: [msnet]
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks: [msnet]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  auth-data:
+  users-data:
+  products-data:
+  orders-data:
+  payments-data:
+
+networks:
+  msnet:
+    name: ecommerce-shared-net
+    driver: bridge

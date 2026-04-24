@@ -1,6 +1,8 @@
 # 🚀 Guía de migración: Monolito → Microservicios
 
-> **Propósito**: este documento captura el plan completo para evolucionar Univalle Shop desde su arquitectura actual (monolito modular Next.js) hacia microservicios, **sin perder funcionalidad en ningún paso intermedio**. Está diseñado para ser autosuficiente — cualquier desarrollador (o agente) puede retomarlo sin contexto previo de la conversación que lo originó.
+> ⚠️ **MIGRACIÓN COMPLETADA (2026-04-24)**: este documento describe el plan original. La migración terminó: el monolito ya no existe, el sistema corre como microservicios con saga coreografiada + outbox + RabbitMQ. Ver `ARQUITECTURA-MICROSERVICIOS.md` para la arquitectura vigente. Lo que sigue se conserva sólo como historia del trabajo realizado y para entender las decisiones.
+>
+> **Propósito original**: este documento capturó el plan completo para evolucionar Univalle Shop desde su arquitectura inicial (monolito modular Next.js) hacia microservicios, **sin perder funcionalidad en ningún paso intermedio**.
 >
 > **Fecha de redacción**: 2026-04-23
 > **Estado del proyecto al redactarlo**: monolito Next.js 16 con Hexagonal, MongoDB único, Camino A de SAGA in-process implementado para Pagos y Catálogo (archivado con compensación de imagen).

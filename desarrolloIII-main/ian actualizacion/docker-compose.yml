@@ -1,19 +1,22 @@
-services:
+services:      
   next-app:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - API_GATEWAY_URL=http://api-gateway:8080
     container_name: ecommerce-next
     ports:
       - "3000:3000"
     environment:
       - MONGO_URI=mongodb://mongo:27017/ecommerce
       - NODE_ENV=production
+      - API_GATEWAY_URL=http://api-gateway:8080
     depends_on:
       - mongo
     networks:
       - ecommerce-network
-
+      - ecommerce-shared-net
   mongo:
     image: mongo:latest
     container_name: ecommerce-mongo
@@ -32,3 +35,6 @@ volumes:
 networks:
   ecommerce-network:
     driver: bridge
+  ecommerce-shared-net:
+    external: true
+    name: ecommerce-shared-net

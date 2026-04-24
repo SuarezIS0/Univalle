@@ -3,6 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "@/app/lib/api";
+
+type LoginResponse = {
+  token: string;
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+};
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,34 +26,25 @@ export default function Login() {
     setLoading(true);
     setError("");
 
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Error al iniciar sesión");
-        return;
-      }
-      localStorage.setItem("token", data.token);
-      localStorage.setItem(
-        "session",
-        JSON.stringify({
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          role: data.role,
-        })
-      );
-      router.push(data.role === "admin" ? "/admin" : "/products");
-    } catch (err) {
-      setError("Error de conexión");
-      console.error(err);
-    } finally {
+    const r = await apiFetch<LoginResponse>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!r.ok || !r.data) {
+      setError(r.error || "Error al iniciar sesión");
       setLoading(false);
+      return;
     }
+
+    const data = r.data;
+    localStorage.setItem("token", data.token);
+    localStorage.setItem(
+      "session",
+      JSON.stringify({ id: data.id, name: data.name, email: data.email, role: data.role })
+    );
+    setLoading(false);
+    router.push(data.role === "admin" ? "/admin" : "/products");
   };
 
   return (

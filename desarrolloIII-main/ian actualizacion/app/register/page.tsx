@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { apiFetch } from "@/app/lib/api";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -36,27 +37,22 @@ export default function Register() {
     setError("");
     setSuccess(false);
 
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Error al registrar");
-        return;
-      }
-      setSuccess(true);
-      setName("");
-      setEmail("");
-      setPassword("");
-    } catch (err) {
-      setError("Error de conexión");
-      console.error(err);
-    } finally {
+    const r = await apiFetch("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    if (!r.ok) {
+      setError(r.error || "Error al registrar");
       setLoading(false);
+      return;
     }
+
+    setSuccess(true);
+    setName("");
+    setEmail("");
+    setPassword("");
+    setLoading(false);
   };
 
   return (

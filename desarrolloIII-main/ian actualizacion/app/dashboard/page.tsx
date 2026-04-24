@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
+import { apiFetch } from "@/app/lib/api";
 
 interface User {
   id: string;
@@ -19,31 +20,19 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          router.push("/login");
-          return;
-        }
-
-        const res = await fetch("http://localhost:3001/api/users", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) {
-          throw new Error("Error al obtener usuarios");
-        }
-
-        const data = await res.json();
-        setUsers(data.data);
-      } catch (err) {
-        setError("Error de conexión");
-        console.error(err);
-      } finally {
-        setLoading(false);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        router.push("/login");
+        return;
       }
+
+      const r = await apiFetch<User[]>("/api/users");
+      if (!r.ok) {
+        setError(r.error || "Error al obtener usuarios");
+      } else {
+        setUsers(r.data ?? []);
+      }
+      setLoading(false);
     };
 
     fetchUsers();
