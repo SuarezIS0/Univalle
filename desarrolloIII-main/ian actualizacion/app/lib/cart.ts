@@ -23,11 +23,35 @@ function persist(cart: Cart) {
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
 }
 
+async function pruneArchivedItems() {
+  if (typeof window === "undefined") return false;
+  const c = loadCart();
+  if (c.isEmpty()) return false;
+  const checks = await Promise.all(
+    c.items.map(async (item) => {
+      try {
+        const res = await fetch(`/api/products/${item.productId}`, {
+          cache: "no-store",
+        });
+        return { productId: item.productId, gone: res.status === 410 };
+      } catch {
+        return { productId: item.productId, gone: false };
+      }
+    })
+  );
+  const removed = checks.filter((r) => r.gone);
+  if (removed.length === 0) return false;
+  for (const r of removed) c.remove(r.productId);
+  persist(c);
+  return true;
+}
+
 export function useCart() {
   const [cart, setCart] = useState<Cart>(new Cart());
 
   useEffect(() => {
     setCart(loadCart());
+    pruneArchivedItems();
     const handler = () => setCart(loadCart());
     window.addEventListener(EVENT_NAME, handler);
     window.addEventListener("storage", handler);

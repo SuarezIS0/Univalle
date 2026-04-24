@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
 import { formatPrice } from "@/app/lib/cart";
 
 type Order = {
@@ -13,14 +15,6 @@ type Order = {
   items: { name: string; quantity: number }[];
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-yellow-600",
-  confirmed: "bg-blue-600",
-  shipped: "bg-purple-600",
-  delivered: "bg-green-600",
-  cancelled: "bg-red-600",
-};
-
 const STATUS_LABELS: Record<string, string> = {
   pending: "Pendiente",
   confirmed: "Confirmada",
@@ -28,6 +22,31 @@ const STATUS_LABELS: Record<string, string> = {
   delivered: "Entregada",
   cancelled: "Cancelada",
 };
+
+function StatusPill({ status }: { status: string }) {
+  const isActive = status === "pending" || status === "confirmed" || status === "shipped";
+  const isCancelled = status === "cancelled";
+  return (
+    <span
+      className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-[12px] border ${
+        isCancelled
+          ? "border-gray-200 text-gray-500 bg-white"
+          : "border-gray-200 text-black bg-white"
+      }`}
+    >
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${
+          isCancelled
+            ? "bg-gray-400"
+            : isActive
+            ? "bg-[var(--uv-red)]"
+            : "bg-black"
+        }`}
+      />
+      {STATUS_LABELS[status] ?? status}
+    </span>
+  );
+}
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -49,44 +68,55 @@ export default function OrdersPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-white text-black flex flex-col">
       <Navbar />
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Mis órdenes</h1>
+      <main className="max-w-5xl mx-auto px-6 py-16 w-full flex-1">
+        <h1 className="text-4xl font-semibold tracking-display text-black mb-3">
+          Mis órdenes
+        </h1>
+        <p className="text-gray-500 mb-12">
+          Seguimiento e historial de tus inscripciones.
+        </p>
 
         {loading ? (
-          <p className="text-gray-400">Cargando...</p>
+          <p className="text-gray-500">Cargando…</p>
         ) : orders.length === 0 ? (
-          <p className="text-gray-400">Aún no tienes órdenes.</p>
+          <div className="text-center py-24 border border-gray-100 rounded-2xl">
+            <p className="text-gray-500 mb-6">Aún no tienes órdenes.</p>
+            <Link href="/products" className="uv-btn-primary inline-flex">
+              Explorar catálogo
+            </Link>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="divide-y divide-gray-100 border-y border-gray-100">
             {orders.map((o) => (
-              <div key={o.id} className="bg-gray-800 p-6 rounded-lg">
-                <div className="flex justify-between items-start mb-3 flex-wrap gap-2">
-                  <div>
-                    <p className="text-sm text-gray-400">
-                      Orden <code>{o.id.slice(0, 8)}</code>
+              <div
+                key={o.id}
+                className="py-6 grid md:grid-cols-[1fr_auto] gap-4 items-start"
+              >
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <p className="text-[13px] text-gray-500">
+                      Orden{" "}
+                      <code className="text-black font-mono">
+                        {o.id.slice(0, 8)}
+                      </code>
                     </p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(o.createdAt).toLocaleString("es-CO")}
-                    </p>
+                    <StatusPill status={o.status} />
                   </div>
-                  <span
-                    className={`px-3 py-1 rounded text-xs font-semibold ${
-                      STATUS_COLORS[o.status] ?? "bg-gray-600"
-                    }`}
-                  >
-                    {STATUS_LABELS[o.status] ?? o.status}
-                  </span>
+                  <p className="text-[12px] text-gray-400 mb-3">
+                    {new Date(o.createdAt).toLocaleString("es-CO")}
+                  </p>
+                  <div className="text-sm text-gray-700 space-y-1">
+                    {o.items.map((i, idx) => (
+                      <div key={idx}>
+                        {i.name}{" "}
+                        <span className="text-gray-400">× {i.quantity}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="text-sm text-gray-300 mb-3">
-                  {o.items.map((i, idx) => (
-                    <div key={idx}>
-                      {i.name} × {i.quantity}
-                    </div>
-                  ))}
-                </div>
-                <p className="text-right font-bold text-lg">
+                <p className="text-lg font-semibold tracking-display text-black md:text-right">
                   {formatPrice(o.total)}
                 </p>
               </div>
@@ -94,6 +124,7 @@ export default function OrdersPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

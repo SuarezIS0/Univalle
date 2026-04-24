@@ -1,4 +1,5 @@
-import { Product, ProductCategory } from "@/domain/entities/Product";
+import { Product, ProductCategory, ProductPatch } from "@/domain/entities/Product";
+import { ProductImage } from "@/domain/entities/ProductImage";
 import {
   ProductRepository,
   ProductFilters,
@@ -6,15 +7,27 @@ import {
 import { ProductModel } from "../models/ProductModel";
 
 function toDomain(doc: any): Product {
+  const image =
+    doc.image && doc.image.url && doc.image.storageKey
+      ? new ProductImage(doc.image.url, doc.image.storageKey)
+      : ProductImage.empty();
+
   return new Product(
     doc._id.toString(),
     doc.name,
     doc.description,
     doc.price,
     doc.stock ?? 0,
-    doc.image ?? "",
-    (doc.category ?? "otros") as ProductCategory
+    image,
+    (doc.category ?? "otros") as ProductCategory,
+    doc.archivedAt ?? null
   );
+}
+
+function toImageDoc(image: ProductImage) {
+  return image.isEmpty()
+    ? null
+    : { url: image.url, storageKey: image.storageKey };
 }
 
 export class MongoProductRepository implements ProductRepository {
@@ -24,7 +37,7 @@ export class MongoProductRepository implements ProductRepository {
       description: product.description,
       price: product.price,
       stock: product.stock,
-      image: product.image,
+      image: toImageDoc(product.image),
       category: product.category,
     });
     return toDomain(doc);
@@ -32,6 +45,7 @@ export class MongoProductRepository implements ProductRepository {
 
   async findAll(filters: ProductFilters = {}): Promise<Product[]> {
     const query: any = {};
+    if (!filters.includeArchived) query.archivedAt = null;
     if (filters.category) query.category = filters.category;
     if (filters.search) {
       query.$or = [
@@ -52,26 +66,34 @@ export class MongoProductRepository implements ProductRepository {
     }
   }
 
-  async update(id: string, updates: Partial<Product>): Promise<Product | null> {
+  async update(id: string, updates: ProductPatch): Promise<Product | null> {
+    const set: any = {};
+    if (updates.name !== undefined) set.name = updates.name;
+    if (updates.description !== undefined) set.description = updates.description;
+    if (updates.price !== undefined) set.price = updates.price;
+    if (updates.stock !== undefined) set.stock = updates.stock;
+    if (updates.category !== undefined) set.category = updates.category;
+    if (updates.image !== undefined) set.image = toImageDoc(updates.image);
+
+    const doc = await ProductModel.findByIdAndUpdate(id, set, { new: true });
+    return doc ? toDomain(doc) : null;
+  }
+
+  async archive(id: string): Promise<Product | null> {
     const doc = await ProductModel.findByIdAndUpdate(
       id,
-      {
-        ...(updates.name !== undefined && { name: updates.name }),
-        ...(updates.description !== undefined && {
-          description: updates.description,
-        }),
-        ...(updates.price !== undefined && { price: updates.price }),
-        ...(updates.stock !== undefined && { stock: updates.stock }),
-        ...(updates.image !== undefined && { image: updates.image }),
-        ...(updates.category !== undefined && { category: updates.category }),
-      },
+      { archivedAt: new Date() },
       { new: true }
     );
     return doc ? toDomain(doc) : null;
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await ProductModel.findByIdAndDelete(id);
-    return result !== null;
+  async restore(id: string): Promise<Product | null> {
+    const doc = await ProductModel.findByIdAndUpdate(
+      id,
+      { archivedAt: null },
+      { new: true }
+    );
+    return doc ? toDomain(doc) : null;
   }
 }

@@ -6,4 +6,5 @@ export interface OrderRepository {
   findByUserId(userId: string): Promise<Order[]>;
   findById(id: string): Promise<Order | null>;
   updateStatus(id: string, status: OrderStatus): Promise<Order | null>;
+  countActiveByProduct(productId: string): Promise<number>;
 }

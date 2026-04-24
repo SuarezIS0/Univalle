@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
 import { formatPrice } from "@/app/lib/cart";
 
 type Order = {
@@ -21,6 +22,14 @@ const NEXT_STATUS: Record<string, string[]> = {
   shipped: ["delivered", "cancelled"],
   delivered: [],
   cancelled: [],
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Pendiente",
+  confirmed: "Confirmada",
+  shipped: "Enviada",
+  delivered: "Entregada",
+  cancelled: "Cancelada",
 };
 
 export default function AdminOrdersPage() {
@@ -60,53 +69,79 @@ export default function AdminOrdersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-white text-black flex flex-col">
       <Navbar />
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Gestión de órdenes</h1>
+      <main className="max-w-6xl mx-auto px-6 py-16 w-full flex-1">
+        <div className="mb-12">
+          <span className="text-[11px] uppercase tracking-wider text-gray-500">
+            Administración
+          </span>
+          <h1 className="text-4xl font-semibold tracking-display text-black mt-2">
+            Gestión de órdenes
+          </h1>
+        </div>
 
-        <div className="space-y-4">
+        <div className="divide-y divide-gray-100 border-y border-gray-100">
           {orders.map((o) => (
-            <div key={o.id} className="bg-gray-800 p-6 rounded-lg">
-              <div className="flex justify-between items-start mb-3 flex-wrap gap-2">
+            <div key={o.id} className="py-6">
+              <div className="flex justify-between items-start mb-3 flex-wrap gap-3">
                 <div>
-                  <p className="text-sm text-gray-400">
-                    <code>{o.id.slice(0, 10)}</code> · {o.shipping.fullName} ({o.shipping.city})
+                  <p className="text-[13px] text-gray-500">
+                    <code className="text-black font-mono">
+                      {o.id.slice(0, 10)}
+                    </code>{" "}
+                    · {o.shipping.fullName}{" "}
+                    <span className="text-gray-400">({o.shipping.city})</span>
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-[12px] text-gray-400 mt-0.5">
                     {new Date(o.createdAt).toLocaleString("es-CO")}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded text-xs bg-gray-700">
-                    {o.status}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-[12px] border border-gray-200 text-black bg-white">
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        o.status === "cancelled"
+                          ? "bg-gray-300"
+                          : o.status === "delivered"
+                          ? "bg-black"
+                          : "bg-[var(--uv-red)]"
+                      }`}
+                    />
+                    {STATUS_LABELS[o.status] ?? o.status}
                   </span>
                   {NEXT_STATUS[o.status]?.map((s) => (
                     <button
                       key={s}
                       onClick={() => handleUpdate(o.id, s)}
-                      className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-700 text-xs"
+                      className="px-3 h-8 text-[12px] text-black border border-gray-200 rounded-md hover:border-black transition-colors"
                     >
-                      → {s}
+                      → {STATUS_LABELS[s] ?? s}
                     </button>
                   ))}
                 </div>
               </div>
-              <div className="text-sm text-gray-300 mb-2">
+              <div className="text-sm text-gray-700 mb-3 flex flex-wrap gap-x-4 gap-y-1">
                 {o.items.map((i, idx) => (
-                  <span key={idx} className="mr-3">
-                    {i.name} × {i.quantity}
+                  <span key={idx}>
+                    {i.name}{" "}
+                    <span className="text-gray-400">× {i.quantity}</span>
                   </span>
                 ))}
               </div>
-              <p className="text-right font-bold">{formatPrice(o.total)}</p>
+              <p className="text-right text-lg font-semibold tracking-display text-black">
+                {formatPrice(o.total)}
+              </p>
             </div>
           ))}
           {orders.length === 0 && (
-            <p className="text-gray-400">No hay órdenes aún.</p>
+            <p className="py-10 text-center text-gray-500">
+              No hay órdenes aún.
+            </p>
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

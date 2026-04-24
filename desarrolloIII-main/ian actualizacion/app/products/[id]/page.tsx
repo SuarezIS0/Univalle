@@ -2,7 +2,9 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
 import { useCart, formatPrice } from "@/app/lib/cart";
 
 type Product = {
@@ -53,14 +55,21 @@ export default function ProductDetailPage({
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-white text-black flex flex-col">
       <Navbar />
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        {loading && <p className="text-gray-400">Cargando...</p>}
-        {error && <p className="text-red-400">{error}</p>}
+      <main className="max-w-6xl mx-auto px-6 py-16 w-full flex-1">
+        <Link
+          href="/products"
+          className="text-sm text-gray-500 hover:text-black mb-8 inline-flex items-center gap-1"
+        >
+          ← Volver al catálogo
+        </Link>
+
+        {loading && <p className="text-gray-500 mt-8">Cargando…</p>}
+        {error && <p className="text-[var(--uv-red)] mt-8">{error}</p>}
         {product && (
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-gray-800 rounded-lg overflow-hidden aspect-square">
+          <div className="grid md:grid-cols-2 gap-12 mt-4">
+            <div className="bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden aspect-square">
               {product.image ? (
                 <img
                   src={product.image}
@@ -68,50 +77,86 @@ export default function ProductDetailPage({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-8xl">
-                  📦
+                <div className="w-full h-full flex items-center justify-center text-6xl text-gray-300">
+                  ◼
                 </div>
               )}
             </div>
-            <div>
-              <span className="text-sm uppercase text-blue-400">
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase tracking-wider text-gray-500">
                 {product.category}
               </span>
-              <h1 className="text-3xl font-bold mt-2 mb-4">{product.name}</h1>
-              <p className="text-2xl font-bold mb-4">
-                {formatPrice(product.price)}
+              <h1 className="text-4xl font-semibold tracking-display text-black mt-3 mb-6 leading-tight">
+                {product.name}
+              </h1>
+              <p className="text-gray-500 leading-relaxed mb-8">
+                {product.description}
               </p>
-              <p className="text-gray-400 mb-6">{product.description}</p>
+
+              <div className="border-t border-gray-100 pt-6 mb-8">
+                <span className="text-[11px] uppercase tracking-wider text-gray-500">
+                  Inversión
+                </span>
+                <p className="text-4xl font-semibold tracking-display text-black mt-1">
+                  {formatPrice(product.price)}
+                </p>
+              </div>
+
               <p
-                className={`mb-6 ${
-                  product.stock > 0 ? "text-green-400" : "text-red-400"
+                className={`mb-8 text-sm flex items-center gap-2 ${
+                  product.stock > 0 ? "text-gray-700" : "text-[var(--uv-red)]"
                 }`}
               >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    product.stock > 0
+                      ? "bg-[var(--uv-red)]"
+                      : "bg-[var(--uv-red)]"
+                  }`}
+                />
                 {product.stock > 0
-                  ? `Disponible: ${product.stock} unidades`
+                  ? `Disponibles: ${product.stock} cupos`
                   : "Agotado"}
               </p>
 
               {product.stock > 0 && (
-                <div className="flex items-center gap-4">
-                  <input
-                    type="number"
-                    min={1}
-                    max={product.stock}
-                    value={quantity}
-                    onChange={(e) =>
-                      setQuantity(
-                        Math.max(
-                          1,
-                          Math.min(product.stock, Number(e.target.value))
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center border border-gray-200 rounded-md h-12">
+                    <button
+                      type="button"
+                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                      className="w-10 h-full text-gray-600 hover:text-black"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      min={1}
+                      max={product.stock}
+                      value={quantity}
+                      onChange={(e) =>
+                        setQuantity(
+                          Math.max(
+                            1,
+                            Math.min(product.stock, Number(e.target.value))
+                          )
                         )
-                      )
-                    }
-                    className="w-20 px-3 py-2 bg-gray-800 border border-gray-700 rounded text-center"
-                  />
+                      }
+                      className="w-12 h-full text-center bg-transparent outline-none text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setQuantity((q) => Math.min(product.stock, q + 1))
+                      }
+                      className="w-10 h-full text-gray-600 hover:text-black"
+                    >
+                      +
+                    </button>
+                  </div>
                   <button
                     onClick={handleAdd}
-                    className="flex-1 px-6 py-3 bg-blue-600 rounded hover:bg-blue-700 font-semibold"
+                    className="uv-btn-primary flex-1 h-12"
                   >
                     Agregar al carrito
                   </button>
@@ -121,6 +166,7 @@ export default function ProductDetailPage({
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

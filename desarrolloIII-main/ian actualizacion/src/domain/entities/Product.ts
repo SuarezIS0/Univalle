@@ -1,3 +1,5 @@
+import { ProductImage } from "./ProductImage";
+
 export type ProductCategory =
   | "ropa"
   | "accesorios"
@@ -6,6 +8,15 @@ export type ProductCategory =
   | "tecnologia"
   | "otros";
 
+export type ProductPatch = {
+  name?: string;
+  description?: string;
+  price?: number;
+  stock?: number;
+  image?: ProductImage;
+  category?: ProductCategory;
+};
+
 export class Product {
   constructor(
     public readonly id: string,
@@ -13,8 +24,9 @@ export class Product {
     public description: string,
     public price: number,
     public stock: number,
-    public image: string,
-    public category: ProductCategory = "otros"
+    public image: ProductImage,
+    public category: ProductCategory = "otros",
+    public archivedAt: Date | null = null
   ) {
     this.validate();
   }
@@ -43,5 +55,41 @@ export class Product {
       throw new Error(`Stock insuficiente para ${this.name}`);
     }
     this.stock -= quantity;
+  }
+
+  isArchived(): boolean {
+    return this.archivedAt !== null;
+  }
+
+  archive() {
+    if (this.isArchived()) return;
+    this.archivedAt = new Date();
+  }
+
+  restore() {
+    this.archivedAt = null;
+  }
+
+  applyPatch(patch: ProductPatch) {
+    if (patch.name !== undefined) this.name = patch.name;
+    if (patch.description !== undefined) this.description = patch.description;
+    if (patch.price !== undefined) this.price = patch.price;
+    if (patch.stock !== undefined) this.stock = patch.stock;
+    if (patch.image !== undefined) this.image = patch.image;
+    if (patch.category !== undefined) this.category = patch.category;
+    this.validate();
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      price: this.price,
+      stock: this.stock,
+      image: this.image.isEmpty() ? "" : this.image.url,
+      category: this.category,
+      archivedAt: this.archivedAt,
+    };
   }
 }

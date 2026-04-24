@@ -17,12 +17,12 @@ async function getRepository() {
 // GET /api/users/:id
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log("🔍 GET USER BY ID - ID recibido:", params.id);
+    const { id } = await ctx.params;
     const repository = await getRepository();
-    const user = await repository.findById(params.id);
+    const user = await repository.findById(id);
 
     if (!user) {
       return NextResponse.json(
@@ -51,15 +51,14 @@ export async function GET(
 // PUT /api/users/:id
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log("🔍 PUT USER - ID recibido:", params.id);
+    const { id } = await ctx.params;
     const body = await req.json();
-    console.log("📝 Body:", body);
     const repository = await getRepository();
 
-    const user = await repository.update(params.id, {
+    const user = await repository.update(id, {
       name: body.name,
       email: body.email,
       password: body.password,
@@ -93,11 +92,12 @@ export async function PUT(
 // DELETE /api/users/:id
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await ctx.params;
     const repository = await getRepository();
-    const deleted = await repository.delete(params.id);
+    const deleted = await repository.delete(id);
 
     if (!deleted) {
       return NextResponse.json(

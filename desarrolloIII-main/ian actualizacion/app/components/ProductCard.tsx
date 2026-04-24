@@ -31,53 +31,83 @@ export default function ProductCard({ product }: Props) {
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg overflow-hidden flex flex-col hover:shadow-lg hover:shadow-blue-500/10 transition">
-      <Link href={`/products/${product.id}`}>
-        <div className="aspect-video bg-gray-900 overflow-hidden">
+    <article className="group uv-card overflow-hidden flex flex-col">
+      <Link href={`/products/${product.id}`} className="relative block">
+        <div className="aspect-[4/3] bg-gray-50 overflow-hidden relative">
           {product.image ? (
             <img
               src={product.image}
               alt={product.name}
-              className="w-full h-full object-cover hover:scale-105 transition"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-4xl">
-              📦
+            <div className="w-full h-full flex items-center justify-center text-4xl text-gray-300">
+              ◼
+            </div>
+          )}
+          {product.stock <= 0 && (
+            <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+              <span className="px-3 py-1 bg-black text-white text-[11px] uppercase tracking-wider rounded-md">
+                Agotado
+              </span>
             </div>
           )}
         </div>
       </Link>
 
-      <div className="p-4 flex-1 flex flex-col">
-        <span className="text-xs uppercase text-blue-400 mb-1">
+      <div className="p-6 flex-1 flex flex-col">
+        <span className="text-[11px] uppercase tracking-wider text-gray-500 mb-2">
           {product.category}
         </span>
         <Link href={`/products/${product.id}`}>
-          <h3 className="font-bold text-lg mb-2 hover:text-blue-400">
+          <h3 className="text-[17px] font-semibold tracking-display text-black mb-2 leading-snug">
             {product.name}
           </h3>
         </Link>
-        <p className="text-gray-400 text-sm mb-4 line-clamp-2 flex-1">
+        <p className="text-gray-500 text-sm mb-6 line-clamp-2 flex-1 leading-relaxed">
           {product.description}
         </p>
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xl font-bold">{formatPrice(product.price)}</span>
-          <span
-            className={`text-xs ${
-              product.stock > 0 ? "text-green-400" : "text-red-400"
-            }`}
-          >
-            {product.stock > 0 ? `Stock: ${product.stock}` : "Agotado"}
+
+        <div className="flex items-end justify-between mb-5">
+          <span className="text-2xl font-semibold tracking-display text-black leading-none">
+            {formatPrice(product.price)}
           </span>
+          {product.stock > 0 && (
+            <span className="text-[12px] text-gray-500 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-[var(--uv-red)] rounded-full" />
+              {product.stock} disponibles
+            </span>
+          )}
         </div>
+
         <button
           onClick={handleAdd}
           disabled={product.stock <= 0}
-          className="w-full px-4 py-2 bg-blue-600 rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
+          className="uv-btn-primary w-full gap-2"
         >
-          Agregar al carrito
+          {product.stock > 0 ? (
+            <>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.8}
+                stroke="currentColor"
+                className="w-4 h-4"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"
+                />
+              </svg>
+              Añadir al carrito
+            </>
+          ) : (
+            "No disponible"
+          )}
         </button>
       </div>
-    </div>
+    </article>
   );
 }

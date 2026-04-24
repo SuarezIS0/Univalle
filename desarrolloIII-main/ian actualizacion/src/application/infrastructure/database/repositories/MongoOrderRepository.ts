@@ -64,4 +64,11 @@ export class MongoOrderRepository implements OrderRepository {
     );
     return doc ? toDomain(doc) : null;
   }
+
+  async countActiveByProduct(productId: string): Promise<number> {
+    return OrderModel.countDocuments({
+      status: { $in: ["pending", "confirmed", "shipped"] },
+      "items.productId": productId,
+    });
+  }
 }

@@ -9,7 +9,10 @@ const sampleProducts = [
     price: 35000,
     stock: 20,
     category: "ropa",
-    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=300&fit=crop",
+    image: {
+      url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=300&fit=crop",
+      storageKey: "external://unsplash-camiseta",
+    },
   },
   {
     name: "Gorra Deportiva Roja",
@@ -17,7 +20,10 @@ const sampleProducts = [
     price: 25000,
     stock: 30,
     category: "accesorios",
-    image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400&h=300&fit=crop",
+    image: {
+      url: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400&h=300&fit=crop",
+      storageKey: "external://unsplash-gorra",
+    },
   },
   {
     name: "Termo Metálico Gris",
@@ -25,7 +31,10 @@ const sampleProducts = [
     price: 45000,
     stock: 15,
     category: "accesorios",
-    image: "https://images.unsplash.com/photo-1602143399827-7217ff3339d0?w=400&h=300&fit=crop",
+    image: {
+      url: "https://images.unsplash.com/photo-1602143399827-7217ff3339d0?w=400&h=300&fit=crop",
+      storageKey: "external://unsplash-termo",
+    },
   },
   {
     name: "Cuaderno Argollado Grande",
@@ -33,7 +42,10 @@ const sampleProducts = [
     price: 15000,
     stock: 50,
     category: "papeleria",
-    image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400&h=300&fit=crop",
+    image: {
+      url: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400&h=300&fit=crop",
+      storageKey: "external://unsplash-cuaderno",
+    },
   },
   {
     name: "Libro: Historia de la Universidad",
@@ -41,7 +53,10 @@ const sampleProducts = [
     price: 60000,
     stock: 10,
     category: "libros",
-    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=300&fit=crop",
+    image: {
+      url: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=300&fit=crop",
+      storageKey: "external://unsplash-libro",
+    },
   },
   {
     name: "Maletín para Portátil",
@@ -49,7 +64,10 @@ const sampleProducts = [
     price: 85000,
     stock: 8,
     category: "accesorios",
-    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=300&fit=crop",
+    image: {
+      url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=300&fit=crop",
+      storageKey: "external://unsplash-maletin",
+    },
   },
   {
     name: "Kit de Pines Univalle",
@@ -57,7 +75,10 @@ const sampleProducts = [
     price: 12000,
     stock: 40,
     category: "accesorios",
-    image: "https://images.unsplash.com/photo-1590561607362-13f3503fd710?w=400&h=300&fit=crop",
+    image: {
+      url: "https://images.unsplash.com/photo-1590561607362-13f3503fd710?w=400&h=300&fit=crop",
+      storageKey: "external://unsplash-pines",
+    },
   },
   {
     name: "Sudadera Gris Hoodie",
@@ -65,7 +86,10 @@ const sampleProducts = [
     price: 95000,
     stock: 12,
     category: "ropa",
-    image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=300&fit=crop",
+    image: {
+      url: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=300&fit=crop",
+      storageKey: "external://unsplash-sudadera",
+    },
   },
 ];
 

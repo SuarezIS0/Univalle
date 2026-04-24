@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
 import { useCart, formatPrice } from "@/app/lib/cart";
 
 export default function CheckoutPage() {
@@ -95,117 +96,154 @@ export default function CheckoutPage() {
 
   if (isEmpty) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white">
+      <div className="min-h-screen bg-white text-black flex flex-col">
         <Navbar />
-        <main className="max-w-3xl mx-auto px-4 py-12 text-center">
-          <p className="text-gray-400">Tu carrito está vacío.</p>
+        <main className="max-w-3xl mx-auto px-6 py-24 text-center flex-1">
+          <p className="text-gray-500">Tu carrito está vacío.</p>
         </main>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-white text-black flex flex-col">
       <Navbar />
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Checkout</h1>
+      <main className="max-w-6xl mx-auto px-6 py-16 w-full flex-1">
+        <h1 className="text-4xl font-semibold tracking-display text-black mb-10">
+          Checkout
+        </h1>
 
-        <form onSubmit={handleSubmit} className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-6">
-            <section className="bg-gray-800 p-6 rounded-lg">
-              <h2 className="text-xl font-bold mb-4">Envío</h2>
-              <div className="grid gap-4">
-                <input
-                  required
-                  name="fullName"
-                  placeholder="Nombre completo"
-                  value={form.fullName}
-                  onChange={handleChange}
-                  className="px-4 py-2 bg-gray-900 border border-gray-700 rounded"
-                />
-                <input
-                  required
-                  name="address"
-                  placeholder="Dirección"
-                  value={form.address}
-                  onChange={handleChange}
-                  className="px-4 py-2 bg-gray-900 border border-gray-700 rounded"
-                />
-                <input
-                  required
-                  name="city"
-                  placeholder="Ciudad"
-                  value={form.city}
-                  onChange={handleChange}
-                  className="px-4 py-2 bg-gray-900 border border-gray-700 rounded"
-                />
-                <input
-                  required
-                  name="phone"
-                  placeholder="Teléfono"
-                  value={form.phone}
-                  onChange={handleChange}
-                  className="px-4 py-2 bg-gray-900 border border-gray-700 rounded"
-                />
+        <form onSubmit={handleSubmit} className="grid md:grid-cols-3 gap-10">
+          <div className="md:col-span-2 space-y-12">
+            <section>
+              <h2 className="text-[13px] uppercase tracking-wider text-gray-500 mb-6">
+                Envío
+              </h2>
+              <div className="grid gap-6">
+                <div>
+                  <label className="uv-label">Nombre completo</label>
+                  <input
+                    required
+                    name="fullName"
+                    placeholder="Tu nombre"
+                    value={form.fullName}
+                    onChange={handleChange}
+                    className="uv-input h-12"
+                  />
+                </div>
+                <div>
+                  <label className="uv-label">Dirección</label>
+                  <input
+                    required
+                    name="address"
+                    placeholder="Calle, número, detalles"
+                    value={form.address}
+                    onChange={handleChange}
+                    className="uv-input h-12"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <label className="uv-label">Ciudad</label>
+                    <input
+                      required
+                      name="city"
+                      value={form.city}
+                      onChange={handleChange}
+                      className="uv-input h-12"
+                    />
+                  </div>
+                  <div>
+                    <label className="uv-label">Teléfono</label>
+                    <input
+                      required
+                      name="phone"
+                      placeholder="+57 300 000 0000"
+                      value={form.phone}
+                      onChange={handleChange}
+                      className="uv-input h-12"
+                    />
+                  </div>
+                </div>
               </div>
             </section>
 
-            <section className="bg-gray-800 p-6 rounded-lg">
-              <h2 className="text-xl font-bold mb-2">💳 Pago (simulado)</h2>
-              <p className="text-xs text-gray-400 mb-4">
+            <section>
+              <h2 className="text-[13px] uppercase tracking-wider text-gray-500 mb-2">
+                Pago
+              </h2>
+              <p className="text-[12px] text-gray-500 mb-6">
                 Pago simulado: una tarjeta terminada en dígito par se aprueba.
               </p>
-              <div className="grid gap-4">
-                <input
-                  required
-                  name="cardHolder"
-                  placeholder="Titular de la tarjeta"
-                  value={form.cardHolder}
-                  onChange={handleChange}
-                  className="px-4 py-2 bg-gray-900 border border-gray-700 rounded"
-                />
-                <input
-                  required
-                  name="cardNumber"
-                  placeholder="Número de tarjeta"
-                  value={form.cardNumber}
-                  onChange={handleChange}
-                  className="px-4 py-2 bg-gray-900 border border-gray-700 rounded"
-                />
+              <div className="grid gap-6">
+                <div>
+                  <label className="uv-label">Titular de la tarjeta</label>
+                  <input
+                    required
+                    name="cardHolder"
+                    placeholder="Nombre del titular"
+                    value={form.cardHolder}
+                    onChange={handleChange}
+                    className="uv-input h-12"
+                  />
+                </div>
+                <div>
+                  <label className="uv-label">Número de tarjeta</label>
+                  <input
+                    required
+                    name="cardNumber"
+                    placeholder="1234 5678 9012 3456"
+                    value={form.cardNumber}
+                    onChange={handleChange}
+                    className="uv-input h-12"
+                  />
+                </div>
               </div>
             </section>
 
-            {error && <p className="text-red-400">{error}</p>}
+            {error && (
+              <p className="text-[var(--uv-red)] text-sm border border-[var(--uv-red)]/20 bg-[var(--uv-red)]/5 rounded-md p-3">
+                {error}
+              </p>
+            )}
           </div>
 
-          <aside className="bg-gray-800 p-6 rounded-lg h-fit">
-            <h2 className="text-xl font-bold mb-4">Resumen</h2>
-            {items.map((i) => (
-              <div
-                key={i.productId}
-                className="flex justify-between text-sm mb-2"
-              >
-                <span>
-                  {i.name} × {i.quantity}
-                </span>
-                <span>{formatPrice(i.price * i.quantity)}</span>
-              </div>
-            ))}
-            <hr className="border-gray-700 my-4" />
-            <div className="flex justify-between font-bold text-lg mb-6">
+          <aside className="border border-gray-100 rounded-2xl p-6 h-fit">
+            <h2 className="text-[13px] uppercase tracking-wider text-gray-500 mb-5">
+              Resumen
+            </h2>
+            <div className="space-y-3 mb-6">
+              {items.map((i) => (
+                <div
+                  key={i.productId}
+                  className="flex justify-between text-sm gap-3"
+                >
+                  <span className="text-gray-700 leading-snug">
+                    {i.name}{" "}
+                    <span className="text-gray-400">× {i.quantity}</span>
+                  </span>
+                  <span className="text-black whitespace-nowrap">
+                    {formatPrice(i.price * i.quantity)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between font-semibold tracking-display text-lg text-black pt-4 border-t border-gray-100 mb-6">
               <span>Total</span>
               <span>{formatPrice(subtotal)}</span>
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3 bg-green-600 rounded hover:bg-green-700 font-semibold disabled:bg-gray-600"
+              className="uv-btn-primary w-full h-12"
             >
-              {loading ? "Procesando..." : "Pagar ahora"}
+              {loading ? "Procesando…" : "Pagar ahora"}
             </button>
           </aside>
         </form>
       </main>
+      <Footer />
     </div>
   );
 }

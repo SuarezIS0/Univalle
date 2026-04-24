@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
 import { formatPrice } from "@/app/lib/cart";
 
 type Metrics = {
@@ -42,90 +43,131 @@ export default function AdminHome() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-white text-black flex flex-col">
       <Navbar />
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Panel de administrador</h1>
+      <main className="max-w-7xl mx-auto px-6 py-16 w-full flex-1">
+        <div className="mb-12">
+          <span className="text-[11px] uppercase tracking-wider text-gray-500">
+            Administración
+          </span>
+          <h1 className="text-4xl font-semibold tracking-display text-black mt-2">
+            Panel de control
+          </h1>
+        </div>
 
-        {error && <p className="text-red-400 mb-6">{error}</p>}
+        {error && (
+          <p className="text-[var(--uv-red)] border border-[var(--uv-red)]/20 bg-[var(--uv-red)]/5 rounded-md p-3 text-sm mb-8">
+            {error}
+          </p>
+        )}
 
         {metrics && (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <Card label="Usuarios" value={metrics.users.toString()} />
-              <Card label="Productos" value={metrics.products.toString()} />
-              <Card label="Órdenes" value={metrics.orders.total.toString()} />
-              <Card
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+              <Metric label="Usuarios" value={metrics.users.toString()} />
+              <Metric label="Productos" value={metrics.products.toString()} />
+              <Metric
+                label="Órdenes"
+                value={metrics.orders.total.toString()}
+              />
+              <Metric
                 label="Ventas totales"
                 value={formatPrice(metrics.totalSales)}
               />
             </div>
 
-            <div className="bg-gray-800 p-6 rounded-lg mb-8">
-              <h2 className="text-xl font-bold mb-4">Estado de órdenes</h2>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <Badge label="Pendientes" value={metrics.orders.pending} color="yellow" />
-                <Badge label="Confirmadas" value={metrics.orders.confirmed} color="blue" />
-                <Badge label="Enviadas" value={metrics.orders.shipped} color="purple" />
-                <Badge label="Entregadas" value={metrics.orders.delivered} color="green" />
-                <Badge label="Canceladas" value={metrics.orders.cancelled} color="red" />
+            <div className="border border-gray-100 rounded-2xl p-8 mb-12">
+              <h2 className="text-[13px] uppercase tracking-wider text-gray-500 mb-6">
+                Estado de órdenes
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                <StatusMetric label="Pendientes" value={metrics.orders.pending} accent />
+                <StatusMetric
+                  label="Confirmadas"
+                  value={metrics.orders.confirmed}
+                />
+                <StatusMetric label="Enviadas" value={metrics.orders.shipped} />
+                <StatusMetric
+                  label="Entregadas"
+                  value={metrics.orders.delivered}
+                />
+                <StatusMetric
+                  label="Canceladas"
+                  value={metrics.orders.cancelled}
+                  muted
+                />
               </div>
             </div>
           </>
         )}
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-6">
           <Link
             href="/admin/products"
-            className="bg-gray-800 p-6 rounded-lg hover:bg-gray-700"
+            className="uv-card p-8 block group"
           >
-            <h3 className="text-xl font-bold mb-2">📦 Productos</h3>
-            <p className="text-gray-400">Gestionar catálogo (crear, editar, eliminar)</p>
+            <h3 className="text-xl font-semibold tracking-display text-black mb-2 group-hover:text-[var(--uv-red)] transition-colors">
+              Productos
+            </h3>
+            <p className="text-gray-500 text-sm leading-relaxed">
+              Gestiona el catálogo: crea, edita y elimina programas.
+            </p>
           </Link>
           <Link
             href="/admin/orders"
-            className="bg-gray-800 p-6 rounded-lg hover:bg-gray-700"
+            className="uv-card p-8 block group"
           >
-            <h3 className="text-xl font-bold mb-2">📋 Órdenes</h3>
-            <p className="text-gray-400">Ver todas las órdenes y actualizar estados</p>
+            <h3 className="text-xl font-semibold tracking-display text-black mb-2 group-hover:text-[var(--uv-red)] transition-colors">
+              Órdenes
+            </h3>
+            <p className="text-gray-500 text-sm leading-relaxed">
+              Revisa todas las órdenes y actualiza sus estados.
+            </p>
           </Link>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
 
-function Card({ label, value }: { label: string; value: string }) {
+function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-gray-800 p-6 rounded-lg">
-      <p className="text-gray-400 text-sm">{label}</p>
-      <p className="text-2xl font-bold mt-1">{value}</p>
+    <div className="border border-gray-100 rounded-xl p-6">
+      <p className="text-[12px] uppercase tracking-wider text-gray-500">
+        {label}
+      </p>
+      <p className="text-2xl font-semibold tracking-display text-black mt-2">
+        {value}
+      </p>
     </div>
   );
 }
 
-function Badge({
+function StatusMetric({
   label,
   value,
-  color,
+  accent,
+  muted,
 }: {
   label: string;
   value: number;
-  color: string;
+  accent?: boolean;
+  muted?: boolean;
 }) {
-  const colors: Record<string, string> = {
-    yellow: "bg-yellow-600",
-    blue: "bg-blue-600",
-    purple: "bg-purple-600",
-    green: "bg-green-600",
-    red: "bg-red-600",
-  };
   return (
-    <div
-      className={`${colors[color]} rounded-lg p-4 text-center`}
-    >
-      <p className="text-xs opacity-90">{label}</p>
-      <p className="text-2xl font-bold">{value}</p>
+    <div>
+      <p className="text-[12px] text-gray-500 mb-2 flex items-center gap-2">
+        <span
+          className={`w-1.5 h-1.5 rounded-full ${
+            muted ? "bg-gray-300" : accent ? "bg-[var(--uv-red)]" : "bg-black"
+          }`}
+        />
+        {label}
+      </p>
+      <p className="text-2xl font-semibold tracking-display text-black">
+        {value}
+      </p>
     </div>
   );
 }

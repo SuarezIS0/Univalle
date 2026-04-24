@@ -40,7 +40,7 @@ export class CreateOrder {
         name: product.name,
         price: product.price,
         quantity: line.quantity,
-        image: product.image,
+        image: product.image.isEmpty() ? "" : product.image.url,
       });
       total += product.price * line.quantity;
 

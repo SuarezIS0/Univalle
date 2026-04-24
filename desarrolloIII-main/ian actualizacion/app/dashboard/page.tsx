@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
 
 interface User {
   id: string;
@@ -48,57 +49,64 @@ export default function Dashboard() {
     fetchUsers();
   }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.push("/login");
-  };
-
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <nav className="bg-gray-800 p-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 bg-red-600 rounded hover:bg-red-700"
-        >
-          Salir
-        </button>
-      </nav>
+    <div className="min-h-screen bg-white text-black flex flex-col">
+      <Navbar />
+      <main className="max-w-6xl mx-auto px-6 py-16 w-full flex-1">
+        <h1 className="text-4xl font-semibold tracking-display text-black mb-3">
+          Usuarios
+        </h1>
+        <p className="text-gray-500 mb-12">
+          Listado de usuarios registrados en la plataforma.
+        </p>
 
-      <div className="p-6">
-        <h2 className="text-3xl font-bold mb-6">Lista de Usuarios</h2>
+        {loading && <p className="text-gray-500">Cargando…</p>}
 
-        {loading && <p className="text-gray-400">Cargando...</p>}
+        {error && (
+          <p className="text-[var(--uv-red)] border border-[var(--uv-red)]/20 bg-[var(--uv-red)]/5 rounded-md p-3 text-sm">
+            {error}
+          </p>
+        )}
 
-        {error && <p className="text-red-400">❌ {error}</p>}
-
-        {users.length === 0 && !loading && (
-          <p className="text-gray-400">No hay usuarios registrados</p>
+        {users.length === 0 && !loading && !error && (
+          <p className="text-gray-500">No hay usuarios registrados.</p>
         )}
 
         {users.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full bg-gray-800 rounded">
+          <div className="border border-gray-100 rounded-2xl overflow-hidden">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-700">
-                  <th className="p-4 text-left">ID</th>
-                  <th className="p-4 text-left">Nombre</th>
-                  <th className="p-4 text-left">Email</th>
+                <tr className="border-b border-gray-100 text-left">
+                  <th className="py-3 px-5 text-[12px] uppercase tracking-wider text-gray-500 font-medium">
+                    ID
+                  </th>
+                  <th className="py-3 px-5 text-[12px] uppercase tracking-wider text-gray-500 font-medium">
+                    Nombre
+                  </th>
+                  <th className="py-3 px-5 text-[12px] uppercase tracking-wider text-gray-500 font-medium">
+                    Email
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((user) => (
-                  <tr key={user.id} className="border-b border-gray-700 hover:bg-gray-700">
-                    <td className="p-4">{user.id}</td>
-                    <td className="p-4">{user.name}</td>
-                    <td className="p-4">{user.email}</td>
+                  <tr
+                    key={user.id}
+                    className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="py-4 px-5 text-gray-500 font-mono text-[12px]">
+                      {user.id}
+                    </td>
+                    <td className="py-4 px-5 text-black">{user.name}</td>
+                    <td className="py-4 px-5 text-gray-700">{user.email}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 }

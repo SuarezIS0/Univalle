@@ -5,6 +5,8 @@ import {
   isDBConnected,
 } from "@/application/infrastructure/database/mongo";
 import { requireAdmin } from "@/application/infrastructure/services/AuthGuard";
+import { ProductCategory } from "@/domain/entities/Product";
+import { parseProductPayload } from "../_payload";
 
 async function ensureDB() {
   if (!isDBConnected()) await connectDB();
@@ -18,6 +20,12 @@ export async function GET(
     await ensureDB();
     const { id } = await ctx.params;
     const product = await ProductController.getById(id);
+    if (product.isArchived()) {
+      return NextResponse.json(
+        { success: false, error: "Producto archivado" },
+        { status: 410 }
+      );
+    }
     return NextResponse.json({ success: true, data: product });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Error";
@@ -39,8 +47,19 @@ export async function PUT(
     }
     await ensureDB();
     const { id } = await ctx.params;
-    const body = await req.json();
-    const updated = await ProductController.update(id, body);
+    const payload = await parseProductPayload(req);
+    const updated = await ProductController.update(id, {
+      ...(payload.name !== undefined && { name: payload.name }),
+      ...(payload.description !== undefined && {
+        description: payload.description,
+      }),
+      ...(payload.price !== undefined && { price: Number(payload.price) }),
+      ...(payload.stock !== undefined && { stock: Number(payload.stock) }),
+      ...(payload.category !== undefined && {
+        category: payload.category as ProductCategory,
+      }),
+      ...(payload.imageFile && { imageFile: payload.imageFile }),
+    });
     return NextResponse.json({ success: true, data: updated });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Error";
@@ -62,10 +81,11 @@ export async function DELETE(
     }
     await ensureDB();
     const { id } = await ctx.params;
-    await ProductController.delete(id);
-    return NextResponse.json({ success: true });
+    const archived = await ProductController.archive(id);
+    return NextResponse.json({ success: true, data: archived });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Error";
-    return NextResponse.json({ success: false, error: msg }, { status: 400 });
+    const status = msg.includes("orden(es) activa(s)") ? 409 : 400;
+    return NextResponse.json({ success: false, error: msg }, { status });
   }
 }

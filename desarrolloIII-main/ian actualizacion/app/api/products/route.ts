@@ -6,6 +6,7 @@ import {
 } from "@/application/infrastructure/database/mongo";
 import { requireAdmin } from "@/application/infrastructure/services/AuthGuard";
 import { ProductCategory } from "@/domain/entities/Product";
+import { parseProductPayload } from "./_payload";
 
 async function ensureDB() {
   if (!isDBConnected()) {
@@ -19,10 +20,12 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category") as ProductCategory | null;
     const search = searchParams.get("search");
+    const includeArchived = searchParams.get("includeArchived") === "true";
 
     const products = await ProductController.getAll({
       ...(category && { category }),
       ...(search && { search }),
+      ...(includeArchived && { includeArchived: true }),
     });
     return NextResponse.json(
       { success: true, data: products, count: products.length },
@@ -44,8 +47,15 @@ export async function POST(req: Request) {
       );
     }
     await ensureDB();
-    const body = await req.json();
-    const product = await ProductController.create(body);
+    const payload = await parseProductPayload(req);
+    const product = await ProductController.create({
+      name: payload.name ?? "",
+      description: payload.description ?? "",
+      price: Number(payload.price ?? 0),
+      stock: Number(payload.stock ?? 0),
+      category: payload.category as ProductCategory | undefined,
+      ...(payload.imageFile && { imageFile: payload.imageFile }),
+    });
     return NextResponse.json({ success: true, data: product }, { status: 201 });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Error";

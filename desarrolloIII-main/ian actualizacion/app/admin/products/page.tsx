@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
 import { formatPrice } from "@/app/lib/cart";
 
 type Product = {
@@ -90,73 +91,108 @@ export default function AdminProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-white text-black flex flex-col">
       <Navbar />
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Gestión de productos</h1>
+      <main className="max-w-6xl mx-auto px-6 py-16 w-full flex-1">
+        <div className="mb-12">
+          <span className="text-[11px] uppercase tracking-wider text-gray-500">
+            Administración
+          </span>
+          <h1 className="text-4xl font-semibold tracking-display text-black mt-2">
+            Gestión de productos
+          </h1>
+        </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-gray-800 p-6 rounded-lg mb-8 grid md:grid-cols-2 gap-4"
+          className="border border-gray-100 rounded-2xl p-8 mb-14"
         >
-          <h2 className="md:col-span-2 text-xl font-bold">
+          <h2 className="text-[13px] uppercase tracking-wider text-gray-500 mb-6">
             {editingId ? "Editar producto" : "Nuevo producto"}
           </h2>
-          <input
-            required
-            placeholder="Nombre"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="px-4 py-2 bg-gray-900 border border-gray-700 rounded"
-          />
-          <select
-            value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
-            className="px-4 py-2 bg-gray-900 border border-gray-700 rounded"
-          >
-            <option value="ropa">Ropa</option>
-            <option value="accesorios">Accesorios</option>
-            <option value="libros">Libros</option>
-            <option value="papeleria">Papelería</option>
-            <option value="tecnologia">Tecnología</option>
-            <option value="otros">Otros</option>
-          </select>
-          <textarea
-            required
-            placeholder="Descripción"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="md:col-span-2 px-4 py-2 bg-gray-900 border border-gray-700 rounded"
-          />
-          <input
-            required
-            type="number"
-            placeholder="Precio"
-            value={form.price}
-            onChange={(e) => setForm({ ...form, price: e.target.value })}
-            className="px-4 py-2 bg-gray-900 border border-gray-700 rounded"
-          />
-          <input
-            required
-            type="number"
-            placeholder="Stock"
-            value={form.stock}
-            onChange={(e) => setForm({ ...form, stock: e.target.value })}
-            className="px-4 py-2 bg-gray-900 border border-gray-700 rounded"
-          />
-          <input
-            placeholder="URL de imagen"
-            value={form.image}
-            onChange={(e) => setForm({ ...form, image: e.target.value })}
-            className="md:col-span-2 px-4 py-2 bg-gray-900 border border-gray-700 rounded"
-          />
-          {error && <p className="md:col-span-2 text-red-400">{error}</p>}
-          <div className="md:col-span-2 flex gap-2">
-            <button
-              type="submit"
-              className="px-6 py-2 bg-green-600 rounded hover:bg-green-700"
-            >
-              {editingId ? "Guardar cambios" : "Crear"}
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="uv-label">Nombre</label>
+              <input
+                required
+                placeholder="Nombre del programa"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="uv-input h-11"
+              />
+            </div>
+            <div>
+              <label className="uv-label">Categoría</label>
+              <select
+                value={form.category}
+                onChange={(e) =>
+                  setForm({ ...form, category: e.target.value })
+                }
+                className="uv-input h-11"
+              >
+                <option value="maestrias">Maestrías</option>
+                <option value="diplomados">Diplomados</option>
+                <option value="cursos">Cursos</option>
+                <option value="ropa">Ropa</option>
+                <option value="accesorios">Accesorios</option>
+                <option value="libros">Libros</option>
+                <option value="papeleria">Papelería</option>
+                <option value="tecnologia">Tecnología</option>
+                <option value="otros">Otros</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="uv-label">Descripción</label>
+              <textarea
+                required
+                placeholder="Breve descripción del programa"
+                value={form.description}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
+                className="uv-input min-h-[96px] py-3"
+              />
+            </div>
+            <div>
+              <label className="uv-label">Precio (COP)</label>
+              <input
+                required
+                type="number"
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                className="uv-input h-11"
+              />
+            </div>
+            <div>
+              <label className="uv-label">Stock / cupos</label>
+              <input
+                required
+                type="number"
+                value={form.stock}
+                onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                className="uv-input h-11"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="uv-label">URL de imagen</label>
+              <input
+                placeholder="https://…"
+                value={form.image}
+                onChange={(e) => setForm({ ...form, image: e.target.value })}
+                className="uv-input h-11"
+              />
+            </div>
+          </div>
+
+          {error && (
+            <p className="text-[var(--uv-red)] border border-[var(--uv-red)]/20 bg-[var(--uv-red)]/5 rounded-md p-3 text-sm mt-6">
+              {error}
+            </p>
+          )}
+
+          <div className="flex gap-3 mt-8">
+            <button type="submit" className="uv-btn-primary">
+              {editingId ? "Guardar cambios" : "Crear producto"}
             </button>
             {editingId && (
               <button
@@ -165,7 +201,7 @@ export default function AdminProductsPage() {
                   setEditingId(null);
                   setForm(EMPTY);
                 }}
-                className="px-6 py-2 bg-gray-600 rounded hover:bg-gray-500"
+                className="uv-btn-ghost"
               >
                 Cancelar
               </button>
@@ -173,44 +209,70 @@ export default function AdminProductsPage() {
           </div>
         </form>
 
-        <div className="bg-gray-800 rounded-lg overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-700">
-              <tr>
-                <th className="p-3 text-left">Nombre</th>
-                <th className="p-3 text-left">Categoría</th>
-                <th className="p-3 text-right">Precio</th>
-                <th className="p-3 text-right">Stock</th>
-                <th className="p-3"></th>
+        <div className="border border-gray-100 rounded-2xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 text-left">
+                <th className="py-3 px-5 text-[12px] uppercase tracking-wider text-gray-500 font-medium">
+                  Nombre
+                </th>
+                <th className="py-3 px-5 text-[12px] uppercase tracking-wider text-gray-500 font-medium">
+                  Categoría
+                </th>
+                <th className="py-3 px-5 text-[12px] uppercase tracking-wider text-gray-500 font-medium text-right">
+                  Precio
+                </th>
+                <th className="py-3 px-5 text-[12px] uppercase tracking-wider text-gray-500 font-medium text-right">
+                  Stock
+                </th>
+                <th className="py-3 px-5"></th>
               </tr>
             </thead>
             <tbody>
               {products.map((p) => (
-                <tr key={p.id} className="border-b border-gray-700">
-                  <td className="p-3">{p.name}</td>
-                  <td className="p-3 text-sm text-gray-400">{p.category}</td>
-                  <td className="p-3 text-right">{formatPrice(p.price)}</td>
-                  <td className="p-3 text-right">{p.stock}</td>
-                  <td className="p-3 text-right space-x-2">
+                <tr
+                  key={p.id}
+                  className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors"
+                >
+                  <td className="py-4 px-5 text-black">{p.name}</td>
+                  <td className="py-4 px-5 text-gray-500">{p.category}</td>
+                  <td className="py-4 px-5 text-right text-black">
+                    {formatPrice(p.price)}
+                  </td>
+                  <td className="py-4 px-5 text-right text-gray-700">
+                    {p.stock}
+                  </td>
+                  <td className="py-4 px-5 text-right space-x-4 whitespace-nowrap">
                     <button
                       onClick={() => handleEdit(p)}
-                      className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-700 text-sm"
+                      className="text-sm text-black hover:text-[var(--uv-red)]"
                     >
                       Editar
                     </button>
                     <button
                       onClick={() => handleDelete(p.id)}
-                      className="px-3 py-1 bg-red-600 rounded hover:bg-red-700 text-sm"
+                      className="text-sm text-gray-500 hover:text-[var(--uv-red)]"
                     >
                       Eliminar
                     </button>
                   </td>
                 </tr>
               ))}
+              {products.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="py-10 px-5 text-center text-gray-500"
+                  >
+                    Aún no has creado productos.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
