@@ -1,6 +1,6 @@
 # 🛒 Univalle Shop
 
-Plataforma de e-commerce para la **Universidad del Valle**. Permite registrarse con correo institucional (`@correounivalle.edu.co` / `@univalle.edu.co`), navegar catálogo, gestionar carrito, generar órdenes y simular pagos con tarjeta.
+Plataforma de e-commerce para la **Universidad del Valle**. Permite registrarse con correo institucional (`@correounivalle.edu.co`), navegar catálogo, gestionar carrito, generar órdenes y simular pagos con tarjeta.
 
 El backend está dividido en **microservicios Node.js** que aplican **Arquitectura Hexagonal**, **principios SOLID** y un **patrón Saga coreografiado** con **RabbitMQ + Outbox** para mantener la consistencia entre servicios. El frontend es una app **Next.js 16 (App Router)** que solo consume el `api-gateway`.
 
