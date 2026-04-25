@@ -13,12 +13,14 @@ const { JwtTokenService } = require("./infrastructure/services/JwtTokenService")
 const { RegisterUser } = require("./application/use-cases/RegisterUser");
 const { LoginUser } = require("./application/use-cases/LoginUser");
 const { VerifyToken } = require("./application/use-cases/VerifyToken");
+const { PromoteUser } = require("./application/use-cases/PromoteUser");
 const { AuthController } = require("./interfaces/http/AuthController");
 const { buildRouter } = require("./interfaces/http/routes");
 
 const PORT = process.env.PORT || 3001;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/auth";
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret-univalle-ecommerce-2026";
+const ADMIN_PROMOTE_SECRET = process.env.ADMIN_PROMOTE_SECRET || "univalle-admin-seed";
 
 async function bootstrap() {
   await mongoose.connect(MONGO_URI);
@@ -30,8 +32,9 @@ async function bootstrap() {
   const registerUser = new RegisterUser({ userRepository, hasher });
   const loginUser = new LoginUser({ userRepository, hasher, tokenService });
   const verifyToken = new VerifyToken({ tokenService });
+  const promoteUser = new PromoteUser({ userRepository, adminSecret: ADMIN_PROMOTE_SECRET });
 
-  const controller = new AuthController({ registerUser, loginUser, verifyToken });
+  const controller = new AuthController({ registerUser, loginUser, verifyToken, promoteUser });
 
   const app = express();
   app.use(cors());

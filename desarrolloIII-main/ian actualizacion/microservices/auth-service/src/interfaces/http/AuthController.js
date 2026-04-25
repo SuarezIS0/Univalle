@@ -1,8 +1,9 @@
 class AuthController {
-  constructor({ registerUser, loginUser, verifyToken }) {
+  constructor({ registerUser, loginUser, verifyToken, promoteUser }) {
     this.registerUser = registerUser;
     this.loginUser = loginUser;
     this.verifyToken = verifyToken;
+    this.promoteUser = promoteUser;
   }
 
   register = async (req, res) => {
@@ -24,6 +25,13 @@ class AuthController {
       const payload = this.verifyToken.execute({ token: req.body.token });
       res.json({ valid: true, payload });
     } catch { res.status(401).json({ valid: false }); }
+  };
+
+  promote = async (req, res) => {
+    try {
+      const user = await this.promoteUser.execute(req.body);
+      res.json(user.toPublicJSON());
+    } catch (e) { res.status(400).json({ error: e.message }); }
   };
 }
 

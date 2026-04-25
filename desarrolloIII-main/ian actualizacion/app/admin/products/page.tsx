@@ -6,22 +6,31 @@ import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import { formatPrice } from "@/app/lib/cart";
 
+type ProductImage = { url: string; storageKey?: string } | null;
+
 type Product = {
   id: string;
   name: string;
   description: string;
   price: number;
   stock: number;
-  image: string;
+  image: ProductImage;
   category: string;
 };
 
-const EMPTY = {
+const EMPTY: {
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  image: ProductImage;
+  category: string;
+} = {
   name: "",
   description: "",
   price: 0,
   stock: 0,
-  image: "",
+  image: null,
   category: "otros",
 };
 
@@ -31,7 +40,35 @@ export default function AdminProductsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
   const router = useRouter();
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError("");
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/products/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      const json = await res.json();
+      if (!json.success) {
+        setError(json.error ?? "Error al subir la imagen");
+        return;
+      }
+      setForm({ ...form, image: { url: json.data.url, storageKey: json.data.storageKey } });
+    } catch (err: any) {
+      setError(err?.message ?? "Error al subir la imagen");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
 
   const load = async () => {
     const res = await fetch("/api/products");
@@ -184,13 +221,44 @@ export default function AdminProductsPage() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="uv-label">URL de imagen</label>
-              <input
-                placeholder="https://…"
-                value={form.image}
-                onChange={(e) => setForm({ ...form, image: e.target.value })}
-                className="uv-input h-11"
-              />
+              <label className="uv-label">Imagen del producto</label>
+              <div className="flex items-start gap-4">
+                {form.image?.url && (
+                  <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={form.image.url}
+                      alt="Vista previa"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="flex-1 space-y-2">
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleFileChange}
+                    disabled={uploading}
+                    className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[var(--uv-red)] file:text-white hover:file:bg-[var(--uv-red-dark)] file:cursor-pointer disabled:opacity-50"
+                  />
+                  <input
+                    placeholder="…o pega una URL https://"
+                    value={form.image?.url ?? ""}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        image: e.target.value
+                          ? { url: e.target.value }
+                          : null,
+                      })
+                    }
+                    className="uv-input h-10 text-sm"
+                  />
+                  {uploading && (
+                    <p className="text-xs text-gray-500">Subiendo imagen…</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -201,7 +269,11 @@ export default function AdminProductsPage() {
           )}
 
           <div className="flex gap-3 mt-8">
-            <button type="submit" className="uv-btn-primary">
+            <button
+              type="submit"
+              disabled={uploading}
+              className="uv-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {editingId ? "Guardar cambios" : "Crear producto"}
             </button>
             {editingId && (

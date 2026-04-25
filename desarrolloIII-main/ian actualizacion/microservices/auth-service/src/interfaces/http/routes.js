@@ -6,6 +6,7 @@ function buildRouter(controller) {
   r.post("/register", controller.register);
   r.post("/login", controller.login);
   r.post("/verify", controller.verify);
+  r.post("/promote", controller.promote);
   // eslint-disable-next-line no-unused-vars
   r.use((err, _req, res, _next) => {
     console.error("[auth] unhandled", err);

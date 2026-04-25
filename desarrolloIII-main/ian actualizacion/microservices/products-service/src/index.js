@@ -18,11 +18,13 @@ const { HandleOrderCancelled } = require("./application/use-cases/HandleOrderCan
 const { ProductController } = require("./interfaces/http/ProductController");
 const { buildRequireAdmin } = require("./interfaces/http/middlewares/auth");
 const { buildRouter } = require("./interfaces/http/routes");
+const { buildUploadMiddleware } = require("./interfaces/http/uploadMiddleware");
 
 const PORT = process.env.PORT || 3003;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/products";
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret-univalle-ecommerce-2026";
 const RABBITMQ_URL = process.env.RABBITMQ_URL || "amqp://localhost:5672";
+const UPLOADS_DIR = process.env.UPLOADS_DIR || "/app/uploads";
 
 async function connectRabbitWithRetry(subscriber, retries = 10, delay = 2000) {
   for (let i = 1; i <= retries; i++) {
@@ -72,10 +74,17 @@ async function bootstrap() {
     countProducts: () => productRepository.count(),
   });
 
+  const upload = buildUploadMiddleware({ uploadsDir: UPLOADS_DIR });
+
   const app = express();
   app.use(cors());
   app.use(express.json({ limit: "5mb" }));
-  app.use("/", buildRouter({ controller, requireAdmin: buildRequireAdmin(tokenService) }));
+  app.use("/", buildRouter({
+    controller,
+    requireAdmin: buildRequireAdmin(tokenService),
+    upload,
+    uploadsDir: UPLOADS_DIR,
+  }));
   app.use((_req, res) => res.status(404).json({ success: false, error: "Ruta no encontrada" }));
   app.use((err, _req, res, _next) => {
     console.error("[products] error global", err);

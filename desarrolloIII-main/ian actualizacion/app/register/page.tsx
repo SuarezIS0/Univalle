@@ -61,7 +61,7 @@ export default function Register() {
       <div
         className="hidden lg:block relative overflow-hidden order-1"
         style={{
-          backgroundImage: "url('/brand/univalle-sede2.jpg')",
+          backgroundImage: "url('/brand/univalle-registro.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}

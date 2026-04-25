@@ -5,6 +5,7 @@
 class UserRepository {
   async findByEmail(_email) { throw new Error("not implemented"); }
   async save(_user) { throw new Error("not implemented"); }
+  async updateRole(_email, _role) { throw new Error("not implemented"); }
 }
 
 module.exports = { UserRepository };

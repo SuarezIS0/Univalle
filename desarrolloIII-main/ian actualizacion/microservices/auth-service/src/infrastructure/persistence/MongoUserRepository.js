@@ -27,6 +27,15 @@ class MongoUserRepository extends UserRepository {
     });
     return toDomain(created);
   }
+
+  async updateRole(email, role) {
+    const doc = await UserModel.findOneAndUpdate(
+      { email: email.toLowerCase() },
+      { role },
+      { new: true }
+    );
+    return toDomain(doc);
+  }
 }
 
 module.exports = { MongoUserRepository };

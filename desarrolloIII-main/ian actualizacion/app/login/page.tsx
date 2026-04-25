@@ -283,7 +283,7 @@ export default function Login() {
       <div
         className="hidden lg:block relative overflow-hidden"
         style={{
-          backgroundImage: "url('/brand/univalle-sede.jpg')",
+          backgroundImage: "url('/brand/univalle_login.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}

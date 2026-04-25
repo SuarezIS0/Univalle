@@ -208,12 +208,13 @@ Diagrama:
 
 **Responsabilidad:** registro, login y verificación de JWT. Valida que el correo termine en `@correounivalle.edu.co` o `@univalle.edu.co` (regla de dominio en `User.ts`).
 
-**Casos de uso:** `RegisterUser`, `LoginUser`, `VerifyToken`.
+**Casos de uso:** `RegisterUser`, `LoginUser`, `VerifyToken`, `PromoteUser`.
 **Adaptadores:** `MongoUserRepository`, `BcryptHasher`, `JwtTokenService`.
 **Endpoints (vía gateway):**
 - `POST /api/auth/register` — crea usuario + retorna JWT
 - `POST /api/auth/login` — valida credenciales + retorna JWT
 - `POST /api/auth/verify` — verifica token
+- `POST /api/auth/promote` — eleva un usuario a `admin` (requiere `secret` del env `ADMIN_PROMOTE_SECRET`)
 
 ### 5.3 `users-service` (puerto 3002 — DB `mongo-users`)
 
@@ -230,7 +231,7 @@ Diagrama:
 **Responsabilidad:** catálogo, stock y compensación de stock cuando una orden se cancela.
 
 **Casos de uso:** `ListProducts`, `GetProduct`, `CreateProduct`, `UpdateProduct`, `ArchiveProduct`, `ReduceStock`, `ReleaseStock`, `SeedProducts`, `HandleOrderCancelled`.
-**Adaptadores:** `MongoProductRepository`, `MongoProcessedEventStore`, `RabbitMQEventSubscriber` (queue `products.order-events`).
+**Adaptadores:** `MongoProductRepository`, `MongoProcessedEventStore`, `RabbitMQEventSubscriber` (queue `products.order-events`), `multer` (disk storage en `/app/uploads`).
 **Endpoints:**
 - `GET /api/products` (público)
 - `GET /api/products/:id` (público)
@@ -239,8 +240,12 @@ Diagrama:
 - `DELETE /api/products/:id` (admin — archive)
 - `POST /api/products/seed` (público — seed inicial)
 - `POST /api/products/:id/reduce-stock` (interno, llamado por `orders` vía HTTP)
+- `POST /api/products/upload` (admin) — recibe multipart/form-data con `file`, guarda PNG/JPG/WEBP (máx 5 MB) en el volumen `products-uploads` y devuelve `{ url, storageKey }`
+- `GET /api/products/uploads/:filename` (público) — sirve los archivos subidos
 
 **Suscripción a eventos:** `order.cancelled` → `HandleOrderCancelled` → por cada item: `ReleaseStock`.
+
+**Persistencia de imágenes:** las imágenes subidas viven en el volumen Docker `products-uploads` (montado en `/app/uploads`). Sobreviven a `docker compose down/up` y rebuilds del servicio. El campo `image` en Mongo guarda `{ url, storageKey }`.
 
 ### 5.5 `orders-service` (puerto 3004 — DB `mongo-orders`)
 
@@ -319,11 +324,29 @@ curl -X POST http://localhost:8080/api/products/seed
 
 ### Promover admin
 
+Hay dos endpoints disponibles (mismo `secret`):
+
 ```bash
+# Recomendado — auth-service (caso de uso PromoteUser)
+curl -X POST http://localhost:8080/api/auth/promote \
+  -H "Content-Type: application/json" \
+  -d '{"secret":"univalle-admin-seed","email":"tu@correounivalle.edu.co"}'
+
+# Alternativo — users-service (legacy)
 curl -X POST http://localhost:8080/api/admin/promote \
   -H "Content-Type: application/json" \
   -d '{"secret":"univalle-admin-seed","email":"tu@correounivalle.edu.co"}'
 ```
+
+### Subir imagen de producto desde el panel admin
+
+En `http://localhost:3000/admin/products` el formulario incluye un selector de archivo PNG/JPG/WEBP (máx 5 MB). El flujo es:
+
+1. Seleccionar archivo → el frontend hace `POST /api/products/upload` con `multipart/form-data` y el `Bearer` del admin.
+2. La respuesta `{ url, storageKey }` se guarda en `form.image` y aparece preview.
+3. Al enviar el formulario se crea/actualiza el producto con ese `image`.
+
+El campo de URL externa sigue disponible debajo del file picker como fallback.
 
 ### Verificar la saga end-to-end
 
@@ -368,6 +391,25 @@ ian actualizacion/
 ├── MIGRATION_GUIDE.md        # Plan histórico de la migración
 └── README.md                 # Este archivo
 ```
+
+---
+
+## 10. Cambios recientes
+
+**Backend**
+
+- `auth-service`: nuevo caso de uso `PromoteUser` y endpoint `POST /api/auth/promote`. Se añadió `updateRole(email, role)` al puerto `UserRepository` y su implementación en `MongoUserRepository`. El secreto se lee del env `ADMIN_PROMOTE_SECRET`.
+- `products-service`: integración de **multer** para subir imágenes de producto. Endpoint `POST /api/products/upload` (admin) y servicio estático en `GET /api/products/uploads/:filename`. Volumen Docker `products-uploads` montado en `/app/uploads` para persistencia entre rebuilds.
+
+**Frontend**
+
+- **Hero**: nueva imagen de campus, gradiente lateral solo detrás del texto (resto de la foto sin overlay), texto enrasado con el logo del navbar; arreglo de la franja blanca residual debajo del hero (`calc(100vh - 65px)` en vez de `72px`).
+- **Categorías**: imágenes locales (`univalle-ropa.png`, `univalle-tecnologia.png`, `univalle-libros.png`), aspect square, hover con scale + shadow + lift, tipografía premium.
+- **Propuesta de valor**: cards con borde sutil, iconos en círculo con tinte rojo institucional, hover con elevación.
+- **CTA banner**: gradiente premium de tres capas, halo blanco difuso, sombra coloreada, botones rounded-full.
+- **Footer**: compactado (padding y line-height reducidos), corrección de copy ("e-learning" → "e-commerce"), columna "Programas" → "Catálogo" con categorías reales (Ropa, Tecnología, Libros y papelería).
+- **Login / Register**: nuevas imágenes de fondo (`univalle_login.png`, `univalle-registro.png`).
+- **Admin / products**: el formulario ahora incluye `<input type="file">` con preview, sube al endpoint del backend y guarda `form.image = { url, storageKey }`. El campo de URL externa queda como fallback.
 
 ---
 
