@@ -30,7 +30,7 @@
 1. [Visión General](#-visión-general)
 2. [Stack Tecnológico](#-stack-tecnológico)
 3. [Arquitectura y Patrones](#-arquitectura-y-patrones)
-   - [¿Por qué Microservicios y no Monolito Modular?](#-por-qué-microservicios-y-no-monolito-modular)
+   - [¿Por qué Arquitectura de Microservicios?](#-por-qué-arquitectura-de-microservicios)
    - [Arquitectura Hexagonal](#-arquitectura-hexagonal-ports--adapters)
    - [Principios SOLID](#-principios-solid)
    - [Patrón Saga Coreografiado](#-patrón-saga-coreografiado)
@@ -96,36 +96,34 @@ El sistema está dividido en dos planos:
 
 ## 🏛️ Arquitectura y Patrones
 
-### 🧬 ¿Por qué Microservicios y no Monolito Modular?
+### 🧬 ¿Por qué Arquitectura de Microservicios?
 
-El sistema está implementado en una **arquitectura de microservicios** plena. No se trata de un monolito modular con carpetas separadas: cada bounded context (`auth`, `users`, `products`, `orders`, `payments`) es un **proceso independiente, con su propio ciclo de despliegue, su propia base de datos y comunicación exclusivamente sobre red**. La taxonomía completa del sistema es:
+El sistema está implementado en una **arquitectura de microservicios** plena. Cada bounded context (`auth`, `users`, `products`, `orders`, `payments`) es un **proceso independiente, con su propio ciclo de despliegue, su propia base de datos y comunicación exclusivamente sobre red**. La taxonomía completa del sistema es:
 
 > **Microservicios** (a nivel de sistema) **+ Hexagonal** (a nivel de cada servicio) **+ Saga coreografiada** (a nivel de coordinación entre servicios).
 
 #### Criterios verificables en este repositorio
 
-| Criterio | Monolito Modular | Microservicios | Estado real del proyecto |
-|----------|------------------|----------------|--------------------------|
-| **Despliegue** | Un único artefacto | Un artefacto por servicio | ✅ 5 `Dockerfile` + 5 `package.json` independientes |
-| **Proceso** | Un solo proceso | Un proceso por servicio | ✅ Cada servicio escucha en su propio puerto (`3001`–`3005`) |
-| **Base de datos** | DB compartida | DB por servicio | ✅ 5 instancias Mongo aisladas (`mongo-auth`, `mongo-users`, `mongo-products`, `mongo-orders`, `mongo-payments`) |
-| **Comunicación** | Llamadas en memoria | Red (HTTP / eventos) | ✅ HTTP síncrono vía `api-gateway` + eventos asíncronos sobre RabbitMQ |
-| **Acoplamiento de datos** | Joins SQL / refs directas | Cada servicio dueño de su modelo | ✅ Sin acceso cruzado a colecciones — solo a través de adaptadores HTTP o eventos |
-| **Coordinación transaccional** | Transacciones ACID | Saga / consistencia eventual | ✅ Saga coreografiada + Outbox + idempotencia con `processedevents` |
-| **Stack tecnológico** | Único | Independiente por servicio | ✅ Posible heterogeneidad (cada servicio puede evolucionar su versión de Node, Mongoose, etc.) |
-| **Escalado** | Vertical del binario completo | Horizontal por servicio | ✅ `docker compose up --scale products-service=N` |
+| Criterio de microservicios | Estado real del proyecto |
+|----------------------------|--------------------------|
+| **Un artefacto por servicio** | ✅ 5 `Dockerfile` + 5 `package.json` independientes |
+| **Un proceso por servicio** | ✅ Cada servicio escucha en su propio puerto (`3001`–`3005`) |
+| **Base de datos por servicio** | ✅ 5 instancias Mongo aisladas (`mongo-auth`, `mongo-users`, `mongo-products`, `mongo-orders`, `mongo-payments`) |
+| **Comunicación por red** | ✅ HTTP síncrono vía `api-gateway` + eventos asíncronos sobre RabbitMQ |
+| **Cada servicio dueño de su modelo** | ✅ Sin acceso cruzado a colecciones — solo a través de adaptadores HTTP o eventos |
+| **Coordinación distribuida** | ✅ Saga coreografiada + Outbox + idempotencia con `processedevents` |
+| **Stack independiente por servicio** | ✅ Cada servicio puede evolucionar su versión de Node, Mongoose, etc. |
+| **Escalado horizontal por servicio** | ✅ `docker compose up --scale products-service=N` |
 
-#### Por qué **no** es un monolito modular
+#### Evidencia concreta en el código
 
-Un monolito modular comparte **proceso y base de datos**, separando únicamente *carpetas* dentro del mismo deployable. Aquí ocurre lo contrario en cada límite que importa:
-
-- **Aislamiento de datos.** `orders-service` **no puede** leer la colección `products` directamente. Para reservar stock invoca `POST /api/products/:id/reduce-stock` por HTTP a otro contenedor — pasando por la red, con su propio timeout, sus propios códigos de error y su propio adaptador (`HttpProductCatalog`).
-- **Compensación por eventos, no por funciones.** Cuando un pago falla, `orders-service` no llama una función de `products` — publica el evento `order.cancelled` en el exchange `domain-events` de RabbitMQ. `products-service` lo consume desde su queue `products.order-events` y ejecuta `ReleaseStock`. Ambos servicios pueden estar en máquinas distintas y en versiones distintas.
-- **Outbox + idempotencia.** Cada servicio mantiene sus propias colecciones `outboxevents` y `processedevents`. **Estos mecanismos solo tienen sentido cuando hay fronteras de red y bases de datos independientes** — en un monolito serían innecesarios porque una transacción ACID resolvería el problema.
-- **Failure isolation.** Si `payments-service` cae, `auth`, `users` y `products` siguen funcionando. El frontend continúa permitiendo navegar el catálogo y autenticarse. En un monolito, una excepción no manejada tumba el proceso completo.
+- **Aislamiento de datos.** `orders-service` reserva stock invocando `POST /api/products/:id/reduce-stock` por HTTP a otro contenedor — con su propio timeout, sus propios códigos de error y su propio adaptador (`HttpProductCatalog`). Nunca lee la colección `products` directamente.
+- **Compensación por eventos.** Cuando un pago falla, `orders-service` publica el evento `order.cancelled` en el exchange `domain-events` de RabbitMQ. `products-service` lo consume desde su queue `products.order-events` y ejecuta `ReleaseStock`. Ambos servicios pueden estar en máquinas distintas y en versiones distintas.
+- **Outbox + idempotencia.** Cada servicio mantiene sus propias colecciones `outboxevents` y `processedevents` para garantizar entrega y evitar reprocesamiento — mecanismos propios de sistemas distribuidos con fronteras de red.
+- **Failure isolation.** Si `payments-service` cae, `auth`, `users` y `products` siguen funcionando. El frontend continúa permitiendo navegar el catálogo y autenticarse.
 - **Composition root por servicio.** Cada microservicio tiene su propio `index.js` que cablea sus adaptadores. No existe un único entrypoint que conozca todas las dependencias del sistema.
 
-#### Beneficios obtenidos en este caso de uso
+#### Beneficios obtenidos
 
 | Beneficio | Cómo se materializa aquí |
 |-----------|--------------------------|
@@ -135,16 +133,14 @@ Un monolito modular comparte **proceso y base de datos**, separando únicamente 
 | **Resiliencia ante fallos parciales** | Una caída de RabbitMQ no pierde eventos: el `OutboxRelay` reintenta hasta que el broker vuelve. |
 | **Equipos autónomos** | Cada servicio puede ser owned por un equipo distinto sin coordinación centralizada de despliegues. |
 
-#### Costo asumido (trade-offs honestos)
-
-Microservicios no es gratis. El proyecto paga conscientemente:
+#### Trade-offs asumidos
 
 - **Complejidad operacional** — Docker Compose orquesta 12 contenedores (5 servicios, 5 mongos, gateway, broker).
 - **Consistencia eventual** — La orden no queda `confirmed` instantáneamente; depende del ciclo del `OutboxRelay` (poll cada 1s).
 - **Observabilidad distribuida** — Trazar una orden requiere correlacionar logs de `orders`, `payments` y `products`.
 - **Latencia adicional** — Cada llamada `orders → products` cruza la red en lugar de ser una invocación en memoria.
 
-Estos costos están justificados por el objetivo académico del proyecto: **practicar de forma realista los patrones de coordinación entre servicios distribuidos** (Saga, Outbox, idempotencia, gateway, mensajería durable) que un monolito modular no exigiría.
+Estos costos están justificados por el objetivo del proyecto: **practicar de forma realista los patrones de coordinación entre servicios distribuidos** (Saga, Outbox, idempotencia, gateway, mensajería durable).
 
 ---
 
